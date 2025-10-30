@@ -11,10 +11,10 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Terrain
+  - TerrainCollider
+  - Hitbox
+  - Hurtbox
   - 
   - 
   - 
@@ -40,4 +40,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Player
+    uniqueID: 2019421837
+    locked: 0
+  - name: VFX
+    uniqueID: 3174815093
     locked: 0
