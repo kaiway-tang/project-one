@@ -8,7 +8,7 @@ public class MobileEntity : HPEntity
     [SerializeField] protected Rigidbody2D rb;
     [SerializeField] protected float groundFriction, airFriction;
     public float weight = 1;
-    public TerrainTrigger[] touchingTerrain; //0-4: ground, front, ceiling, backLow, backHigh
+    public TerrainTrigger[] touchingTerrain; //0-4: ground, front, backLow, backHigh, ceiling
     bool noTerrainTriggers;
     protected bool facing = FACING_RIGHT;
     protected const bool FACING_LEFT = false, FACING_RIGHT = true;
@@ -21,11 +21,11 @@ public class MobileEntity : HPEntity
     protected new void Start()
     {
         if (touchingTerrain.Length < 1) { noTerrainTriggers = true; }
+        if (!trfm) { trfm = transform; }
         base.Start();
     }
     protected new void FixedUpdate()
-    {
-        ApplyXFriction(IsTouchingGround() ? groundFriction : airFriction);
+    {        
         base.FixedUpdate();
     }
 
@@ -217,7 +217,7 @@ public class MobileEntity : HPEntity
         }
     }
 
-    protected void SetVelocity(float x, float y)
+    public void SetVelocity(float x, float y)
     {
         vect2.x = x; vect2.y = y;
         rb.velocity = vect2;
@@ -244,6 +244,13 @@ public class MobileEntity : HPEntity
         reflectionTrfm.localScale = vect2;
         facing = FACING_LEFT;
     }
+    
+    protected void FlipFacing()
+    {
+        if (IsFacingLeft()) { FaceRight(); return; }
+        FaceLeft();
+    }
+
     int facingLock;
     protected void LockFacing(bool lockFacing)
     {
@@ -255,10 +262,22 @@ public class MobileEntity : HPEntity
         if (facingLock < 0) { Debug.Log("facing lock < 0 wtf"); }
     }
 
-    public bool IsTouchingGround()
+    public override bool IsTouchingGround()
     {
-        if (noTerrainTriggers) { return false; }
-        return touchingTerrain[0].IsTouchingGround();
+        if (noTerrainTriggers || touchingTerrain.Length < 1 || !touchingTerrain[0]) { return false; }
+        return touchingTerrain[0].IsTouchingTerrain();
+    }
+
+    public bool frontTouchingTerrain()
+    {
+        if (touchingTerrain.Length < 2 || !touchingTerrain[1]) { return false; }
+        return touchingTerrain[1].IsTouchingTerrain();
+    }
+
+    public bool backTouchingTerrain()
+    {
+        if (touchingTerrain.Length < 4 || !touchingTerrain[2] || !touchingTerrain[3]) { return false; }
+        return touchingTerrain[2].IsTouchingTerrain() || touchingTerrain[3].IsTouchingTerrain();
     }
 
     protected void DisableGravity()

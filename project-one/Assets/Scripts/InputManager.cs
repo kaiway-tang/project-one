@@ -5,7 +5,7 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     public static KeyCode JumpKey, JumpKey1, UpKey, UpKey1, DownKey, DownKey1, LeftKey, LeftKey1, RightKey, RightKey1;
-    public static KeyCode AttackKey, AttackKey1, DashRollKey, DashRollKey1, ShadowKey, ShadowKey1;
+    public static KeyCode AttackKey, AttackKey1, BlinkKey, BlinkKey1, EviscerateKey, EviscerateKey1, ShadowKey, ShadowKey1;
 
     static bool firstLoad;
 
@@ -32,8 +32,11 @@ public class InputManager : MonoBehaviour
         AttackKey = KeyCode.U;
         AttackKey1 = KeyCode.V;
 
-        DashRollKey = KeyCode.I;
-        DashRollKey1 = KeyCode.C;
+        BlinkKey = KeyCode.I;
+        BlinkKey1 = KeyCode.C;
+
+        EviscerateKey = KeyCode.O;
+        EviscerateKey1 = KeyCode.X;
 
         ShadowKey = KeyCode.LeftShift;
         ShadowKey1 = KeyCode.RightShift;
@@ -135,15 +138,19 @@ public class InputManager : MonoBehaviour
         return Input.GetKeyUp(AttackKey) || Input.GetKeyUp(AttackKey1);
     }
 
-    public static bool DashRollPressed()
+    public static bool BlinkPressed()
     {
-        return Input.GetKeyDown(DashRollKey) || Input.GetKeyDown(DashRollKey1);
+        return Input.GetKeyDown(BlinkKey) || Input.GetKeyDown(BlinkKey1);
     }
-    public static bool DashRollHeld()
+    public static bool BlinkHeld()
     {
-        return Input.GetKey(DashRollKey) || Input.GetKey(DashRollKey1);
+        return Input.GetKey(BlinkKey) || Input.GetKey(BlinkKey1);
     }
 
+    public static bool EvisceratePressed()
+    {
+        return Input.GetKeyDown(EviscerateKey) || Input.GetKeyDown(EviscerateKey1);
+    }
 
     public static bool ShadowPressed()
     {

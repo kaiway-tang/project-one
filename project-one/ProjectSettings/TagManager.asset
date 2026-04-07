@@ -12,7 +12,7 @@ TagManager:
   - Water
   - UI
   - Terrain
-  - TerrainCollider
+  - TerrainTrigger
   - Hitbox
   - Hurtbox
   - 
@@ -46,4 +46,7 @@ TagManager:
     locked: 0
   - name: VFX
     uniqueID: 3174815093
+    locked: 0
+  - name: HUD
+    uniqueID: 2011876941
     locked: 0
