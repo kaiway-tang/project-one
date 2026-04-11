@@ -9,6 +9,7 @@ public class ChunkInfo : MonoBehaviour
     public bool up, down, left, right;
     public int directionID;
     public Tilemap tileMap;
+    public bool disabled;
     // Start is called before the first frame update
     void Awake()
     {

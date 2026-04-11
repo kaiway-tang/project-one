@@ -45,6 +45,14 @@ public class TileMapBuilder : MonoBehaviour
                 mainTileMap.SetTile(new Vector3Int(cx * chunkWidth + tx, cy * chunkHeight + ty, 0), chunkTileMap.GetTile(new Vector3Int(tx, ty, 0)));
             }
         }
+
+        GameObject chunkObj = Instantiate(chunkInfo.gameObject, new Vector3(cx * chunkWidth, cy * chunkHeight, 0), Quaternion.identity);
+        
+        while (chunkObj.transform.childCount > 0)
+        {
+            chunkObj.transform.GetChild(0).parent = null;
+        }
+        Destroy(chunkObj);
     }
 
     ChunkInfo GetChunk(int directionID)
@@ -57,6 +65,7 @@ public class TileMapBuilder : MonoBehaviour
     {
         for(int i = 0; i < chunkInfos.Length; i++)
         {
+            if (chunkInfos[i].disabled) {  continue; }
             chunkInfos[i].SetDirectionID();
             if (!chunkInfoDict.ContainsKey(chunkInfos[i].directionID))
             {

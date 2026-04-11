@@ -20,14 +20,4 @@ public class Enemy01 : Enemy
             attackTmr--;
         }
     }
-
-    protected bool PlayerInSight()
-    {
-        return !Tools.Linecast(trfm.position, Player.self.trfm.position, Tools.terrainLayerMask);
-    }
-
-    protected bool LineOfSight(Vector2 start, Vector2 end)
-    {
-        return !Tools.Linecast(start, end, Tools.terrainLayerMask);
-    }
 }

@@ -6,6 +6,7 @@ public class Enemy : MobileEntity
 {
     [SerializeField] protected float trackingXDistance, trackingYDistance;
     static int terrainLayerMask = 1 << 6; //layer mask to only test for terrain collisions
+
     protected new void Start()
     {
         base.Start();
@@ -22,9 +23,21 @@ public class Enemy : MobileEntity
         base.FixedUpdate();
 
         ApplyXFriction(IsTouchingGround() ? groundFriction : airFriction);
+        tenthTimer--;
+        if (tenthTimer <= 0) {
+            TenthSec();
+            tenthTimer = 6;
+        }
+    }
+
+    int tenthTimer;
+    protected void TenthSec()
+    {
+        trackingPlayer = PlayerInTrackingRange() && PlayerInSight();
     }
 
     #region PLAYER_INFO
+    protected bool trackingPlayer;
     protected float PlayerXDiff()
     {
         return Player.self.trfm.position.x - trfm.position.x;
@@ -42,10 +55,6 @@ public class Enemy : MobileEntity
         return Player.self.trfm.position.y - trfm.position.y;
     }
 
-    protected bool TrackingPlayer()
-    {
-        return PlayerInTrackingRange() && PlayerInSight();
-    }
     protected bool PlayerInTrackingRange()
     {
         return Mathf.Abs(PlayerXDiff()) < trackingXDistance && Mathf.Abs(PlayerYDiff()) < trackingYDistance;

@@ -25,7 +25,7 @@ public class SpawnerEnemy : Enemy
     {
         base.FixedUpdate();
 
-        if (PlayerInTrackingRange())
+        if (trackingPlayer)
         {
             if (attackCD > 0) attackCD--;
             else

@@ -19,14 +19,17 @@ public class TriangleEnemy : Enemy
     protected new void Update()
     {
         base.Update();
-        GameManager.RotateTowards(spriteTrfm, Player.self.GetDistanceScalingPredictedPosition(trfm.position, 3), rotateSpeed * Time.deltaTime);
+        if (trackingPlayer)
+        {
+            GameManager.RotateTowards(spriteTrfm, Player.self.GetDistanceScalingPredictedPosition(trfm.position, 3), rotateSpeed * Time.deltaTime);
+        }        
     }
 
     protected new void FixedUpdate()
     {
         base.FixedUpdate();
 
-        if (PlayerInTrackingRange())
+        if (trackingPlayer)
         {            
             if (attackCD > 0) attackCD--;
             else

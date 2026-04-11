@@ -27,13 +27,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2657458183909538034}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.8, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6229739348899139286}
+  m_RootOrder: -2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!58 &1988211194332253187
 CircleCollider2D:
@@ -111,12 +111,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4010746770d14fd45b3f76ef0fc785ea, type: 3}
   m_Color: {r: 1, g: 0.3066038, b: 0.3066038, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.2345679, y: 1.2345679}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -142,6 +142,7 @@ MonoBehaviour:
   hitFX: {fileID: 3549079543571459813, guid: 88d4e4ee2996bdd478bc8f8aaf9d8510, type: 3}
   deathFX: {fileID: 0}
   hurtboxes: []
+  hpBar: {fileID: 0}
   intangible: 0
 --- !u!50 &8110545950188551304
 Rigidbody2D:
@@ -196,7 +197,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7916414097266231137}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.369322, y: -2.9909143, z: 0}
   m_LocalScale: {x: 0.9, y: 0.9, z: 1}
@@ -204,6 +204,7 @@ Transform:
   m_Children:
   - {fileID: 5634464661377570488}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!58 &1045145293790144083
 CircleCollider2D:
@@ -289,6 +290,9 @@ MonoBehaviour:
   hitFX: {fileID: 0}
   ignoreColliders: []
   attacker: {fileID: 0}
+  targetFollowing: 0
+  followingMultiplier: {x: 0, y: 0}
+  focus: 0
   speed: 14
   rb: {fileID: 8110545950188551304}
   spriteTrfm: {fileID: 5634464661377570488}

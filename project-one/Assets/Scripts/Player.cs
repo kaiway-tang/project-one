@@ -39,6 +39,8 @@ public class Player : MobileEntity
     [SerializeField] int focus, maxFocus;
     [SerializeField] HPBar focusBar;
 
+    [SerializeField] Fader focusFader, damageFader;
+
     public static Player self;
 
     private void Awake()
@@ -137,7 +139,7 @@ public class Player : MobileEntity
         SetXVelocity(IsFacingLeft() ? -wallJumpXPower : wallJumpXPower);
         if (wallJumpWindow > 0)
         {
-            SetYVelocity(wallJumpYPower - 6 + wallJumpWindow);
+            SetYVelocity(wallJumpYPower - 4 + wallJumpWindow);
         } else
         {
             SetYVelocity(wallJumpYPower);
@@ -259,8 +261,7 @@ public class Player : MobileEntity
             {                
                 if (eviscerateTimer == 28)
                 {
-                    SetVelocity(IsFacingLeft() ? -eviscerateExitVelocity : eviscerateExitVelocity, 0);
-                    SetIntangible(false);                    
+                    SetVelocity(IsFacingLeft() ? -eviscerateExitVelocity : eviscerateExitVelocity, 0);                                      
                     if (empoweredEviscerate)
                     {
                         empoweredEviscerateAttack.Activate(3, IsFacingRight() ? 0 : 1);
@@ -273,6 +274,7 @@ public class Player : MobileEntity
                     EnableGravity();                                     
                 }
                 if (eviscerateTimer == 27) {
+                    SetIntangible(false);
                     evisceratePtcl.Stop();
                 }
                 if (empoweredEviscerate && eviscerateTimer < 16)
@@ -373,14 +375,14 @@ public class Player : MobileEntity
             }
             else if (hasDJump)
             {
-                wallJumpWindow = 6;
+                wallJumpWindow = 4;
                 SetYVelocity(jumpPower);
                 hasDJump = false;
                 hadDJump = true;
             }
             else
             {
-                wallJumpWindow = 6;
+                wallJumpWindow = 4;
                 hadDJump = false;
             }
         }
@@ -466,13 +468,23 @@ public class Player : MobileEntity
     {
         float offset = (evadedEnemy.trfm.position - evadeOrigin).x;
         if (offset > 0)
-        {            
+        {
             FaceLeft();
+            RaycastHit2D hit = Physics2D.Linecast(evadedEnemy.trfm.position, evadedEnemy.trfm.position + Vector3.right * 2, Tools.terrainLayerMask);
+            if (hit.collider != null)
+            {
+                return hit.distance;
+            }
             return 2;
         }
         else
         {            
             FaceRight();
+            RaycastHit2D hit = Physics2D.Linecast(evadedEnemy.trfm.position, evadedEnemy.trfm.position + Vector3.right * -2, Tools.terrainLayerMask);
+            if (hit.collider != null)
+            {
+                return -hit.distance;
+            }
             return -2;
         }
     }
@@ -530,10 +542,27 @@ public class Player : MobileEntity
 
     public void AddFocus(int amount)
     {
+        bool focusMaxed = self.focus >= self.maxFocus;
         self.focus += amount;
-        if (self.focus > self.maxFocus) { self.focus = self.maxFocus; }
+        if (self.focus >= self.maxFocus) {
+            self.focus = self.maxFocus;
+            if (!focusMaxed)
+            {
+                Debug.Log("focus maxed");
+                focusFader.SetTo(0.4f);
+                focusFader.FadeTo(0);
+            }
+        }
         if (self.focus < 0) { self.focus = 0; }
         self.focusBar.SetHP(self.focus);
+    }
+
+    public override int TakeDamage(int damage, int p_entityID, Team p_team, int attackID)
+    {
+        Debug.Log("damage taken");
+        damageFader.SetTo(Mathf.Min(damage / 50f, 1f));
+        damageFader.FadeTo(0);
+        return base.TakeDamage(damage, p_entityID, p_team, attackID);
     }
 
     protected override void Die()
@@ -554,6 +583,7 @@ public class Player : MobileEntity
         trackingDelay = Mathf.Max(delay, trackingDelay);
     }
 
+    Vector3 predictedTerrainCollision;
     void PositionTracking_FixedUpdate()
     {
         if (trackingDelay > 0) {  trackingDelay--; }
@@ -565,17 +595,45 @@ public class Player : MobileEntity
             trackingIndex++;
             trackingIndex %= trackedPositions.Length;
             trackingTimer = 1;
+
+            predictedTerrainCollision = ExtrapolateTerrainCollision(GetRawPredictedPosition(300));
         }
     }
-    public Vector3 GetPredictedPosition(int ticksAhead)
+    Vector3 ExtrapolateTerrainCollision(Vector3 predictedPos)
+    {
+        RaycastHit2D hit = Physics2D.Linecast(trfm.position, predictedPos, Tools.terrainLayerMask);        
+        if (hit.collider != null)
+        {
+            vect3.x = hit.point.x; vect3.y = hit.point.y; vect3.z = 0;
+            return vect3;
+        }
+        return predictedPos;
+    }
+
+    Vector3 targetPredictedPos;
+    public Vector3 GetRawPredictedPosition(int ticksAhead)
     {
         return trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] + (trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] - trackedPositions[trackingIndex]) / 60f * ticksAhead;
     }
+    public Vector3 GetPredictedPosition(int ticksAhead)
+    {
+        targetPredictedPos = GetRawPredictedPosition(ticksAhead);
+        if (Vector3.SqrMagnitude(targetPredictedPos - trfm.position) > Vector3.SqrMagnitude(predictedTerrainCollision - trfm.position))
+        {
+            return predictedTerrainCollision;
+        }
+        return targetPredictedPos;
+    }
     public Vector3 GetDistanceScalingPredictedPosition(Vector3 pos, float multiplier, int tickPredictionCap = 90)
     {
-        return trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] + (trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] - trackedPositions[trackingIndex])
+        targetPredictedPos = trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] + (trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length] - trackedPositions[trackingIndex])
             / 60f * Mathf.Min(Vector3.Distance(pos, trackedPositions[(trackingIndex + trackedPositions.Length - 1) % trackedPositions.Length]) * multiplier,
             tickPredictionCap);
+        if (Vector3.SqrMagnitude(targetPredictedPos - trfm.position) > Vector3.SqrMagnitude(predictedTerrainCollision - trfm.position))
+        {
+            return predictedTerrainCollision;
+        }
+        return targetPredictedPos;
     }
     #endregion
 }

@@ -38,8 +38,9 @@ public class Fader : MonoBehaviour
 
     bool fading;
     float targetAlpha;
-    public void FadeTo(float alpha)
+    public void FadeTo(float alpha, float pFadeRate = 0)
     {
+        if (pFadeRate > 0.001f) { fadeRate = pFadeRate; }
         fading = true;
         targetAlpha = alpha;
     }

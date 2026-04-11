@@ -6,6 +6,8 @@ public class test : MonoBehaviour
 {
     [SerializeField] float time;
     [SerializeField] int tickSeconds, ticks;
+
+    [SerializeField] Fader focusFader;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,7 +17,12 @@ public class test : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        time += Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            Debug.Log("set fade");
+            focusFader.SetTo(0.3f);
+            focusFader.FadeTo(0);
+        }
     }
 
     private void FixedUpdate()

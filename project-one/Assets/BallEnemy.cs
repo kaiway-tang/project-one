@@ -22,7 +22,7 @@ public class BallEnemy : Enemy
         if (attackCD > 0) { attackCD--; }
         else
         {
-            if (TrackingPlayer())
+            if (trackingPlayer)
             {
                 attackCD = Random.Range(70,110);
                 SetYVelocity(jumpHeight);
