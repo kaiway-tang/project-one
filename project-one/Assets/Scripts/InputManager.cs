@@ -151,6 +151,10 @@ public class InputManager : MonoBehaviour
     {
         return Input.GetKeyDown(EviscerateKey) || Input.GetKeyDown(EviscerateKey1);
     }
+    public static bool EviscerateHeld()
+    {
+        return Input.GetKey(EviscerateKey) || Input.GetKey(EviscerateKey1);
+    }
 
     public static bool ShadowPressed()
     {

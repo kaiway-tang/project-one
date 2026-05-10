@@ -15,7 +15,7 @@ public class HPEntity : MonoBehaviour
     [SerializeField] HPBar hpBar;
 
     [SerializeField] int intangible;
-    int lastAttackID;
+    protected int lastAttackID;
     
     protected int stunDuration, stunCounter;
 

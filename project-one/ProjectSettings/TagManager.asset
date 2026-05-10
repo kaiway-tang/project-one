@@ -15,7 +15,7 @@ TagManager:
   - TerrainTrigger
   - Hitbox
   - Hurtbox
-  - 
+  - EnemyHurtbox
   - 
   - 
   - 
@@ -38,6 +38,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 1534512817
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

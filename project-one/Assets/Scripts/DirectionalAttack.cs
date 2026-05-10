@@ -16,7 +16,7 @@ public class DirectionalAttack : Attack
     Vector2 kbResult;
     protected override int OnTriggerEnter2D(Collider2D col)
     {
-        if (col.gameObject.layer != 9) {
+        if (!GameManager.IsHitboxLayer(col.gameObject.layer)) {
             return DamageResult.IGNORED;
         }
 

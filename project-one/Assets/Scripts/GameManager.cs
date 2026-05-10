@@ -48,4 +48,9 @@ public class GameManager : MonoBehaviour
     {
         return damage * 0.018f;
     }
+
+    public static bool IsHitboxLayer(int layer)
+    {
+        return layer == 9 || layer == 10;
+    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -66,7 +67,7 @@ public class Attack : MonoBehaviour
 
     protected virtual int OnTriggerEnter2D(Collider2D col)
     {
-        if (col.gameObject.layer != 9) { return DamageResult.IGNORED; }
+        if (!GameManager.IsHitboxLayer(col.gameObject.layer)) { return DamageResult.IGNORED; }
         if (ignoreColliders != null)
         {
             for (int i = 0; i < ignoreColliders.Length; i++)
@@ -77,15 +78,15 @@ public class Attack : MonoBehaviour
         colHPEntity = col.GetComponent<HPEntity>();
         if (colHPEntity == hpEntity || team == colHPEntity.team || hpEntity == colHPEntity) { return DamageResult.IGNORED; }
         if (colHPEntity.team == HPEntity.Team.player && Player.evadeTimer > 0) {
-            Player.Evade(attacker);
-            return DamageResult.EVADED;
+            if (Player.Evade(attacker, attackID)) { return DamageResult.EVADED; }
+            else { return DamageResult.EVADE_IGNORED; }
         }
 
         int result = colHPEntity.TakeDamage(damage, hpEntity.entityID, hpEntity.team, attackID);
 
         if (result != DamageResult.IGNORED)
         {
-            if (team == HPEntity.Team.player) { Player.self.AddFocus(focus); }
+            if (team == HPEntity.Team.player) { Player.self.AddFocus(focus, attackID); }
             CinemachineController.AddTrauma(trauma, maxTrauma);
             if (hitFX != null)
             {

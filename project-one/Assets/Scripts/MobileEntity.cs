@@ -135,8 +135,11 @@ public class MobileEntity : HPEntity
         rb.velocity = vect2;
     }
 
-    protected void ApplyXFriction(float amount)
+    protected void ApplyXFriction()
     {
+        float amount = groundFriction;
+        if (!IsTouchingGround()) { amount = airFriction; }
+
         vect2 = rb.velocity;
 
         if (vect2.x > 0)
@@ -264,7 +267,7 @@ public class MobileEntity : HPEntity
 
     public override bool IsTouchingGround()
     {
-        if (noTerrainTriggers || touchingTerrain.Length < 1 || !touchingTerrain[0]) { return false; }
+        if (noTerrainTriggers || touchingTerrain.Length < 1 || !touchingTerrain[0]) { return true; }
         return touchingTerrain[0].IsTouchingTerrain();
     }
 

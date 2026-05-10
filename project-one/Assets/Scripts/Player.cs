@@ -41,6 +41,7 @@ public class Player : MobileEntity
 
     [SerializeField] Fader focusFader, damageFader;
 
+    [SerializeField] PlayerAnimator animator;
     public static Player self;
 
     private void Awake()
@@ -69,16 +70,14 @@ public class Player : MobileEntity
         Movement_FixedUpdate();
         Abilities_FixedUpdate();
         PositionTracking_FixedUpdate();
+        
     }
 
     #region Movement
     void Movement_FixedUpdate()
     {
-        if (IsStunned())
-        {
-            ApplyXFriction(IsTouchingGround() ? groundFriction : airFriction);
-            return;
-        }
+        ApplyXFriction();
+        if (IsStunned()) { return; }
 
         if (wallJumpWindow > 0)
         {
@@ -105,12 +104,17 @@ public class Player : MobileEntity
                     {
                         FaceLeft();
                         AddXVelocity(-groundSpeed, -maxSpeed);
+                        animator.RequestAnimatorState(animator.Run);
                     }
                 }
                 else if (InputManager.RightHeld())
                 {
                     FaceRight();
                     AddXVelocity(groundSpeed, maxSpeed);
+                    animator.RequestAnimatorState(animator.Run);
+                } else
+                {
+                    animator.RequestAnimatorState(animator.Idle);
                 }
             }
         }
@@ -129,9 +133,11 @@ public class Player : MobileEntity
                 FaceRight();
                 AddXVelocity(airSpeed, maxSpeed);
             }
-        }
 
-        ApplyXFriction(IsTouchingGround() ? groundFriction : airFriction);
+            if (Mathf.Abs(rb.velocity.y) < 4f) { animator.RequestAnimatorState(animator.AirborneStill); }
+            else if (rb.velocity.y > 0) { animator.RequestAnimatorState(animator.Rising); }
+            else { animator.RequestAnimatorState(animator.Falling); }
+        }
     }
 
     void DoWallJump()
@@ -225,7 +231,8 @@ public class Player : MobileEntity
             if (evading == 3)
             {
                 SetStun(false);
-                self.trfm.position = evadedEnemy.trfm.position + Vector3.right * GetEvadeOffsetAndSetFacing();                
+                if (evadedEnemy) { evadedEnemyPos = evadedEnemy.trfm.position; }
+                self.trfm.position = evadedEnemyPos + Vector3.right * GetEvadeOffsetAndSetFacing();                
             }
             if (evading == 0)
             {
@@ -241,16 +248,25 @@ public class Player : MobileEntity
             eviscerateTimer--;
 
             if (eviscerateTimer == 45) {
-                eviscerateAnimator.Play();
-                wakizashi.SetActive(false);
+                //eviscerateAnimator.Play();
+                //wakizashi.SetActive(false);
             }
             if (eviscerateTimer > 30)
             {
+                if (empoweredEviscerate && !InputManager.EviscerateHeld())
+                {
+                    empoweredEviscerate = false;
+                }
                 SetVelocity(0, 0);
                 if (eviscerateTimer == 31)
                 {
                     SetIntangible(true);
                     evisceratePtcl.Play();
+
+                    if (empoweredEviscerate)
+                    {
+                        AddFocus(-100);
+                    }
                 }
             }
             else if (eviscerateTimer > 28)
@@ -319,6 +335,8 @@ public class Player : MobileEntity
                 basicAttack1Animator.Play();
                 basicAttackComboWindow = 0;
                 basicAttackCD = 30;
+
+                animator.QueAnimation(animator.Attack1, 16);
                 if (basicAttackTimer < 1)
                 {
                     LockFacing(true);
@@ -330,6 +348,8 @@ public class Player : MobileEntity
                 basicAttackAnimator.Play();
                 basicAttackCD = 9;
                 basicAttackComboWindow = 30;
+
+                animator.QueAnimation(animator.Attack2, 16);
                 LockFacing(true);
             }
             basicAttackTimer = 18;
@@ -440,15 +460,19 @@ public class Player : MobileEntity
 
             SetStun(true);
             evadeTimer = 15;
-            evadeCD = 60;
+            evadeCD = 90;
         }
     }
 
     Enemy evadedEnemy;
-    Vector3 evadeOrigin;
-    public static void Evade(Enemy enemy)
+    Vector3 evadeOrigin, evadedEnemyPos;
+    public static bool Evade(Enemy enemy, int attackID)
     {
+        if (attackID > 0 && attackID == self.lastAttackID) { return false; }
+
         self.evadeOrigin = self.trfm.position;
+        if (enemy) { self.evadedEnemyPos = enemy.trfm.position; }        
+        else { self.evadedEnemyPos = self.trfm.position + Vector3.right * (self.IsFacingRight() ? 1 : -1); }
         self.SetTrackingDelay(30);
 
         Instantiate(self.dashPoofFX, self.trfm.position, Quaternion.identity);
@@ -461,16 +485,20 @@ public class Player : MobileEntity
         self.GetEvadeOffsetAndSetFacing();
 
         evading = 15;
-        self.AddFocus(10);        
+        self.evadeCD = 30;
+        self.AddFocus(15);
+
+        return true;
     }
 
     float GetEvadeOffsetAndSetFacing()
     {
-        float offset = (evadedEnemy.trfm.position - evadeOrigin).x;
+        if (evadedEnemy) { evadedEnemyPos = evadedEnemy.trfm.position; }
+        float offset = (evadedEnemyPos - evadeOrigin).x;
         if (offset > 0)
         {
             FaceLeft();
-            RaycastHit2D hit = Physics2D.Linecast(evadedEnemy.trfm.position, evadedEnemy.trfm.position + Vector3.right * 2, Tools.terrainLayerMask);
+            RaycastHit2D hit = Physics2D.Linecast(evadedEnemyPos, evadedEnemyPos + Vector3.right * 2, Tools.terrainLayerMask);
             if (hit.collider != null)
             {
                 return hit.distance;
@@ -480,7 +508,7 @@ public class Player : MobileEntity
         else
         {            
             FaceRight();
-            RaycastHit2D hit = Physics2D.Linecast(evadedEnemy.trfm.position, evadedEnemy.trfm.position + Vector3.right * -2, Tools.terrainLayerMask);
+            RaycastHit2D hit = Physics2D.Linecast(evadedEnemyPos, evadedEnemyPos + Vector3.right * -2, Tools.terrainLayerMask);
             if (hit.collider != null)
             {
                 return -hit.distance;
@@ -490,10 +518,10 @@ public class Player : MobileEntity
     }
 
     bool empoweredEviscerate;
-    int windUpTime = 25;
+    int windUpTime = 30;
     void HandleEviscerate()
     {
-        if (InputManager.EvisceratePressed() && eviscerateCD < 1 && !IsStunned())
+        if (InputManager.EviscerateHeld() && eviscerateCD < 1 && !IsStunned())
         {
             CancelAttacks();               
 
@@ -501,13 +529,15 @@ public class Player : MobileEntity
             LockFacing(true);
             DisableGravity();
             eviscerateTimer = 30 + windUpTime;
-            eviscerateCD = 90;
+            eviscerateCD = 75;
+
+            animator.QueAnimation(animator.Eviscerate, 50);
+            eviscerateAnimator.Play();
+            wakizashi.SetActive(false);
 
             if (focus == maxFocus)
             {
                 empoweredEviscerate = true;
-                focus = 0;
-                self.AddFocus(-999);
             }
         }
     }
@@ -540,15 +570,17 @@ public class Player : MobileEntity
     }
     #endregion
 
-    public void AddFocus(int amount)
+    public void AddFocus(int amount, int attackID = -1)
     {
+        if (attackID >= 0 && attackID == lastAttackID) { return; }
+        else { lastAttackID = attackID; }
+
         bool focusMaxed = self.focus >= self.maxFocus;
         self.focus += amount;
         if (self.focus >= self.maxFocus) {
             self.focus = self.maxFocus;
             if (!focusMaxed)
             {
-                Debug.Log("focus maxed");
                 focusFader.SetTo(0.4f);
                 focusFader.FadeTo(0);
             }
@@ -559,7 +591,6 @@ public class Player : MobileEntity
 
     public override int TakeDamage(int damage, int p_entityID, Team p_team, int attackID)
     {
-        Debug.Log("damage taken");
         damageFader.SetTo(Mathf.Min(damage / 50f, 1f));
         damageFader.FadeTo(0);
         return base.TakeDamage(damage, p_entityID, p_team, attackID);

@@ -7,6 +7,8 @@ public class Enemy : MobileEntity
     [SerializeField] protected float trackingXDistance, trackingYDistance;
     static int terrainLayerMask = 1 << 6; //layer mask to only test for terrain collisions
 
+    protected int channelingTimer;
+
     protected new void Start()
     {
         base.Start();
@@ -22,12 +24,14 @@ public class Enemy : MobileEntity
     {
         base.FixedUpdate();
 
-        ApplyXFriction(IsTouchingGround() ? groundFriction : airFriction);
+        ApplyXFriction();
         tenthTimer--;
         if (tenthTimer <= 0) {
             TenthSec();
             tenthTimer = 6;
         }
+
+        if (channelingTimer > 0) { channelingTimer--; }
     }
 
     int tenthTimer;
@@ -36,23 +40,41 @@ public class Enemy : MobileEntity
         trackingPlayer = PlayerInTrackingRange() && PlayerInSight();
     }
 
+    protected void FacePlayer(int predictTicks = 0)
+    {
+        if (PlayerXDiff(0) > 0)
+        {
+            FaceRight();
+        } else
+        {
+            FaceLeft();
+        }
+    }
+
+    protected void SetChanneling(int ticks)
+    {
+        if (channelingTimer < ticks) { channelingTimer = ticks; }
+    }
+
+    protected bool IsChanneling() { return channelingTimer > 0; }
+
     #region PLAYER_INFO
     protected bool trackingPlayer;
-    protected float PlayerXDiff()
+    protected float PlayerXDiff(int predictTicks = 0)
     {
-        return Player.self.trfm.position.x - trfm.position.x;
+        return Player.self.GetPredictedPosition(predictTicks).x - trfm.position.x;
     }
-    protected float PlayerPredictedXDiff(int ticks)
+    protected float PlayerPredictedXDiff(int ticks = 0)
     {
         return Player.self.GetPredictedPosition(ticks).x - trfm.position.x;
     }
-    protected float PlayerXDistance()
+    protected float PlayerXDistance(int predictTicks = 0)
     {
-        return Mathf.Abs(Player.self.trfm.position.x - trfm.position.x);
+        return Mathf.Abs(Player.self.GetPredictedPosition(predictTicks).x - trfm.position.x);
     }
-    protected float PlayerYDiff()
+    protected float PlayerYDiff(int predictTicks = 0)
     {
-        return Player.self.trfm.position.y - trfm.position.y;
+        return Player.self.GetPredictedPosition(predictTicks).y - trfm.position.y;
     }
 
     protected bool PlayerInTrackingRange()

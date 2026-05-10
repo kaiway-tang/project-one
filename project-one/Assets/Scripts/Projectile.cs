@@ -22,13 +22,14 @@ public class Projectile : Attack
     protected new void Update()
     {
         base.Update();
-        spriteTrfm.Rotate(Vector3.forward * 400f * Time.deltaTime);
+        //spriteTrfm.Rotate(Vector3.forward * 400f * Time.deltaTime);
         trfm.position += trfm.up * speed * Time.deltaTime;
     }
 
     public void Initiate(Enemy pAttacker)
     {
         attacker = pAttacker;
+        hpEntity = pAttacker;
     }
 
     protected new void FixedUpdate()
@@ -38,7 +39,7 @@ public class Projectile : Attack
 
     protected new int OnTriggerEnter2D(Collider2D col)
     {
-        if (col.gameObject.layer != 9)
+        if (!GameManager.IsHitboxLayer(col.gameObject.layer))
         {
             if (destroyFX != null)
             {
